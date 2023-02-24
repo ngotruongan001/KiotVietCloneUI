@@ -25,7 +25,7 @@ dependencies:
   path_provider:
   font_awesome_flutter:
   fluttertoast: ^8.0.8
-
+  dio: ^5.0.0
 
 dev_dependencies:
   flutter_test:

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:kiotvietclone/modules/forgot_password/forgot_password.dart';
 import 'package:kiotvietclone/modules/home_page/home_page.dart';
+import 'package:kiotvietclone/modules/register/register.dart';
+import 'package:kiotvietclone/providers/auth_provider.dart';
+import 'package:provider/provider.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -14,20 +17,21 @@ class _LoginScreenState extends State<LoginScreen> {
 
   // editing controller
   final TextEditingController emailController = TextEditingController();
-  final TextEditingController nameController = TextEditingController();
+  final TextEditingController userNameController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   var checkedValue = false;
 
   @override
   void initState() {
     super.initState();
+    context.read<AuthProvider>().getUsers();
   }
 
   @override
   void dispose() {
     super.dispose();
     emailController.dispose();
-    nameController.dispose();
+    userNameController.dispose();
     passwordController.dispose();
   }
 
@@ -88,7 +92,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           _widgetField(
                             title: "Tên đăng nhập",
-                            controller: nameController,
+                            controller: userNameController,
                             icon: const Icon(
                               Icons.account_circle_rounded,
                               color: Colors.green,
@@ -140,8 +144,17 @@ class _LoginScreenState extends State<LoginScreen> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               GestureDetector(
-                                onTap: () {
-                                  Navigator.push(context, MaterialPageRoute(builder: (_)=>HomePage()));
+                                onTap: () async{
+                                  var url = emailController.text;
+                                  var userName = userNameController.text;
+                                  var password = passwordController.text;
+                                  bool isLogin = await context.read<AuthProvider>().onPressedlogin(userName:userName,password: password,url: url,);
+                                  print("login $isLogin");
+                                  if(isLogin){
+                                    Navigator.push(context, MaterialPageRoute(builder: (_)=>HomePage()));
+                                  }else{
+                                    _dialogBuilder(context);
+                                  }
                                 },
                                 child: Container(
                                   width:
@@ -165,11 +178,19 @@ class _LoginScreenState extends State<LoginScreen> {
                             height: 20.0,
                           ),
                           Center(
-                            child: Text("Bạn chưa có tài khoản?",
-                                style: TextStyle(
-                                    fontSize: 12.0,
-                                    color:
-                                        Colors.greenAccent.withOpacity(0.5))),
+                            child: GestureDetector(
+                              onTap: (){
+                                Navigator.push(context, MaterialPageRoute(builder: (_)=>RegisterPage(),),);
+                              },
+                              child: Padding(
+                                padding: const EdgeInsets.all(12.0),
+                                child: Text("Bạn chưa có tài khoản?",
+                                    style: TextStyle(
+                                        fontSize: 12.0,
+                                        color:
+                                            Colors.greenAccent.withOpacity(0.5))),
+                              ),
+                            ),
                           ),
                         ],
                       ),
@@ -280,6 +301,29 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         ),
       ],
+    );
+  }
+  Future<void> _dialogBuilder(BuildContext context) {
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Đăng nhập thất bại'),
+          content: const Text(
+              'Mật khẩu và tài khoản không đúng\n'),
+          actions: <Widget>[
+            TextButton(
+              style: TextButton.styleFrom(
+                textStyle: Theme.of(context).textTheme.labelLarge,
+              ),
+              child: const Text('Cancel', style: TextStyle(color: Colors.red, fontSize: 20.0),),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 }
